@@ -19,17 +19,23 @@ void EventConsumer::Push( EventConsumer* consumer )
 
 void EventConsumer::Pop()
 {
+	EventConsumer* consumer;
 	if ( consumers.size() > 0 )
 	{
-		consumers.top()->isActive = false;
-		consumers.top()->keysPressed.clear();
+		consumer = consumers.top();
+		consumer->isActive = false;
+		consumer->Clear();
+		consumer->keysPressed.clear();
+		
 		consumers.pop();
 	}
 	
 	if ( consumers.size() > 0 )
 	{
-		consumers.top()->isActive = true;
-		consumers.top()->keysPressed.clear();
+		consumer = consumers.top();
+		consumer->isActive = true;
+		consumer->Clear();
+		consumer->keysPressed.clear();
 	}
 }
 
@@ -69,6 +75,14 @@ void EventConsumer::SetAsActiveConsumer()
 	if ( !this->isActive )
 	{
 		EventConsumer::Push( this );
+	}
+}
+
+void EventConsumer::ClearAsActiveConsumer()
+{
+	if ( this->isActive )
+	{
+		EventConsumer::Pop();
 	}
 }
 

@@ -228,14 +228,7 @@ bool Character::Update()
 				case SDL_BUTTON_LEFT:
 				{
 					SDL_Point point = { it->x, it->y };
-					
-					int idx = hud->OnClick( point );
-					
-					if ( isBounded( idx, 0, this->inventory.size() ) )
-					{
-						this->Use( idx );
-					}
-					
+					hud->OnClick( point );
 					break;
 				}
 			}

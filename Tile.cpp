@@ -145,6 +145,15 @@ ChestTile::ChestTile()
 	this->isPassible = true;
 	this->SetId( 590 );
 	this->Init();
+	
+	// TODO
+	// initializing here causes crash for some reason
+	// not sure why but its ok to initialize it on the 
+	// first interaction since the displaying of the
+	// intentory does not prevent the existance of it
+	this->inventoryDisplay = nullptr;
+	
+	this->AddItem( new Bread() );
 }
 
 bool ChestTile::Update()
@@ -165,5 +174,21 @@ bool ChestTile::Update()
 
 void ChestTile::OnInteract()
 {
-	// TODO display an inventory
+	if ( this->inventoryDisplay == nullptr )
+	{
+		this->inventoryDisplay = new InventoryDisplay( this );
+	}
+	
+	this->inventoryDisplay->SetAsActiveConsumer();
+	this->inventoryDisplay->Show();
+}
+
+void ChestTile::Render()
+{
+	Tile::Render();
+	
+	if ( this->inventoryDisplay )
+	{
+		this->inventoryDisplay->Render();
+	}
 }

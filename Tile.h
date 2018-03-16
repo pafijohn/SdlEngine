@@ -1,10 +1,12 @@
 #pragma once
 
-#import "Timer.h"
-#import "SdlTexture.h"
-#import "Renderable.h"
-#import "Inventoried.h"
-#import "Displayable.h"
+#include "Timer.h"
+#include "SdlTexture.h"
+#include "Renderable.h"
+#include "Inventoried.h"
+#include "Displayable.h"
+#include "EventConsumer.h"
+#include "InventoryDisplay.h"
 
 class Tile: public SdlTexture
 {
@@ -50,11 +52,13 @@ public:
 	virtual void Render();
 };
 
-class ChestTile: public Tile, public Inventoried, public Displayable
+class ChestTile: public Tile, public Inventoried
 {
+	InventoryDisplay* inventoryDisplay;
 public:
 	ChestTile();
-	
-	virtual bool Update();	
 	virtual void OnInteract();
+	
+	virtual bool Update();
+	virtual void Render();
 };

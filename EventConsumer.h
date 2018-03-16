@@ -28,6 +28,7 @@ public:
 	EventConsumer();
 	
 	void SetAsActiveConsumer();
+	void ClearAsActiveConsumer();
 	void OnKeyDown( int keyCode );
 	void OnKeyUp( int keyCode );
 	void OnButtonPressed( const SDL_MouseButtonEvent& event );

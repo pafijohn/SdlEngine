@@ -121,8 +121,10 @@ bool Chest::Use()
 	character->GetCenter( point );
 	
 	point = Map::GetPosition( point, character->texture.direction, 1.0 );
+	ChestTile* tile = new ChestTile();
+	bool put = Map::PutTile( tile, Layers::LEVEL, point.x, point.y );
 	
-	return Map::PutTile( new ChestTile(), Layers::LEVEL, point.x, point.y );
+	return put;
 }
 
 Inventory::Inventory()

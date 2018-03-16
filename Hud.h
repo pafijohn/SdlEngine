@@ -3,19 +3,19 @@
 #include "SdlTexture.h"
 #include "Renderable.h"
 #include "Displayable.h"
+#include "InventoryDisplay.h"
 
-class Hud: public Renderable, public Displayable
+class Hud: public Renderable
 {
+	InventoryDisplay* inventoryDisplay;
+	
 public:
 	SdlTexture* backpack;
-	SdlTexture* inventoryDisplay;
 	
 	Hud();
 	
-	int OnClick( const SDL_Point& point );
+	void OnClick( const SDL_Point& point );
 	
-	void Show();
-	void Hide();
 	virtual bool Update();
 	virtual void Render();
 };

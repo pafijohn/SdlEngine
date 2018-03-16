@@ -11,12 +11,14 @@
 #include "EventConsumer.h"
 #include "CharacterChat.h"
 #include "CharacterTexture.h"
+#include "InventoryDisplay.h"
 
 class Character: public Renderable, public EventConsumer, public Inventoried, public Equipped
 {
 	std::map<std::string, Modifier*> modifiers;
 	Timer timer;
 	CharacterChat chat;
+	
 public:
 	CharacterTexture texture;
 	

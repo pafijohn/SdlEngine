@@ -10,6 +10,11 @@ bool Displayable::IsDisplayed()
 	return this->displayed;
 }
 
+void Displayable::ToggleDisplayed()
+{
+	this->displayed = !this->displayed;
+}
+
 void Displayable::SetDisplayed( bool display )
 {
 	this->displayed = display;
