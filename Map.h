@@ -3,6 +3,8 @@
 #include "Tile.h"
 #include "Timer.h"
 #include "Layers.h"
+#include "QuadTree.h"
+#include "Pointers.h"
 #include "Renderable.h"
 #include "Positionable.h"
 
@@ -14,15 +16,13 @@ class MapEntity: public Renderable
 {
 	int layer;
 public:
-	void SetLayer( int i );
+	void SetLayer(int i);
 	virtual bool Update();
 	virtual void Render();
 };
 
 class Map
 {
-	static int chunkX;
-	static int chunkY;
 public:
 	
 	enum
@@ -35,23 +35,24 @@ public:
 		HUD,
 		NUM_LAYERS
 	};
-	
-	static std::vector< std::vector< Tile* >* > tiles[ NUM_LAYERS ];
+		
+	static std::vector< std::vector< Pointers::SmartPointer< Tile > >* > tiles[ NUM_LAYERS ];
 	
 	static void Init();
-	static void LoadLayer( const std::string& mapFile, int layer, int width, int height );
+	static void LoadLayer(const std::string& mapFile, int layer, int width, int height);
 	
-	static bool HasCollision( SdlRect& other );
-	static SDL_Point GetPosition( const SDL_Point& point, int direction, float distance );
-	static Tile* GetTile( int layer, int x, int y );
-	static Tile* GetTile( const SDL_Point& point, int direction, float distance );
-	static bool PutTile( Tile* tile, int layer, int x, int y, bool overwrite = false );
-	static void GetMapSize( int& w, int& h );
+	// Entity Based
+	static void PushEntity(Entity& entity);
+	static void PopEntity(Entity& entity);
+	static bool CheckCollision(Entity& entity, EntitySet& collisions);
+	// End of Entity Based
 	
-	static void GetCollision( SdlRect& other, std::vector< bool >& collided, std::vector< Tile* >& collidedTiles );
+	static SDL_Point GetPosition(const SDL_Point& point, int direction, float distance);
+	static Tile* GetTile(size_t layer, size_t x, size_t y);
+	static Tile* GetTile(const SDL_Point& point, int direction, float distance);
+	static bool PutTile(Tile* tile, size_t layer, size_t x, size_t y, bool overwrite = false);
+	static void GetMapSize(int& w, int& h);
 	
-	static int GetCollisionId( SdlRect& other );
-	
-	static void UpdateLayer( int layer );
-	static void RenderLayer( int layer );
+	static void UpdateLayer(int layer);
+	static void RenderLayer(int layer);
 };

@@ -16,9 +16,15 @@ void Positionable::Move( int x, int y )
 void Positionable::Move( const SDL_Point& point )
 {
 	this->point = point;
+	this->OnMove();
 }
 
 const SDL_Point& Positionable::GetPos()
 {
 	return this->point;
+}
+
+void Positionable::OnMove()
+{
+	
 }

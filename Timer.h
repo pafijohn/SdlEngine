@@ -1,8 +1,12 @@
 #pragma once
 
-#include <sys/time.h>
 #include <cstdint>
 #include <chrono>
+
+typedef struct timeval {
+    long tv_sec;
+    long tv_usec;
+} timeval;
 
 class Timer
 {

@@ -3,6 +3,8 @@
 #include "Character.h"
 #include "CharacterTexture.h"
 
+using namespace Pointers;
+
 const static int frameCounts[] = {
 	7,
 	8,
@@ -14,27 +16,27 @@ const static int frameCounts[] = {
 CharacterTexture::CharacterTexture()
 {
 	FrameInfo frameInfo = {
-		"res\\CharacterSpriteSheet.png",     // sprite
-		0,                                   // numFrames
-		SPRITE_SIZE,                         // frameWidth
-		SPRITE_SIZE,                         // frameHeight
-		0,                                   // startX
-		0,                                   // startY
-		SPRITE_SIZE,                         // incX
-		0,                                   // incY
-		SPRITE_SIZE,                         // scaleW
-		SPRITE_SIZE                          // scaleH
+		"resources\\CharacterSpriteSheet.png", // sprite
+		0,                               // numFrames
+		SPRITE_SIZE,                     // frameWidth
+		SPRITE_SIZE,                     // frameHeight
+		0,                               // startX
+		0,                               // startY
+		SPRITE_SIZE,                     // incX
+		0,                               // incY
+		SPRITE_SIZE,                     // scaleW
+		SPRITE_SIZE                      // scaleH
 	};
 	
-	for ( int i = 0; i < NUM_ACTIONS; i++ )
+	for (uint32_t i = 0; i < NUM_ACTIONS; i++)
 	{
-		frameInfo.numFrames = frameCounts[ i ];
+		frameInfo.numFrames = frameCounts[i];
 		
-		for ( int k = 0; k < Directions::NUM_DIRECTIONS; k++ )
+		for (uint32_t k = 0; k < Directions::NUM_DIRECTIONS; k++)
 		{	
-			AnimatedTexture* animation = new AnimatedTexture( frameInfo );
+			auto animation = create<AnimatedTexture>(frameInfo);
 			
-			this->top[ i ][ k ] = animation;
+			this->top[i][k] = animation;
 			
 			frameInfo.startY += SPRITE_SIZE;
 		}
@@ -44,25 +46,25 @@ CharacterTexture::CharacterTexture()
 	this->action = WALK;
 	this->direction = Directions::FORWARD;
 	
-	this->Move( 0, 0 );
+	this->Move(0, 0);
 	
-	Layers::AddToLayer( this, Layers::LEVEL );
+	Layers::AddToLayer(this, Layers::LEVEL);
 	
-	for ( int k = 0; k < Directions::NUM_DIRECTIONS; k++ )
+	for (uint32_t k = 0; k < Directions::NUM_DIRECTIONS; k++)
 	{
-		this->top[ WALK ][ this->direction ]->repeat = true;
+		this->top[WALK][this->direction]->Repeat();
 	}
 }
 
-void CharacterTexture::SetMoving( bool moving )
+void CharacterTexture::SetMoving(bool moving)
 {
-	if ( moving != this->isMoving )
+	if (moving != this->isMoving)
 	{
-		if ( this->action == WALK )
+		if (this->action == WALK)
 		{
 			this->isMoving = moving;
 			
-			if ( this->isMoving )
+			if (this->isMoving)
 			{
 				this->GetAnimation()->Play();
 			}
@@ -74,11 +76,11 @@ void CharacterTexture::SetMoving( bool moving )
 	}
 }
 
-void CharacterTexture::SetAction( int action, bool ignoreChecks )
+void CharacterTexture::SetAction(int action, bool ignoreChecks)
 {
-	if ( action != this->action )
+	if (action != this->action)
 	{
-		if ( ignoreChecks or ( this->action == WALK ) )
+		if (ignoreChecks || (this->action == WALK))
 		{
 			this->GetAnimation()->Stop();
 			
@@ -89,29 +91,29 @@ void CharacterTexture::SetAction( int action, bool ignoreChecks )
 	}
 }
 
-void CharacterTexture::SetDirection( int direction )
+void CharacterTexture::SetDirection(int direction)
 {
-	if ( ( direction & ( 1 << Directions::LEFT ) ) and ( direction & ( 1 << Directions::RIGHT ) ) )
+	if ((direction & (1 << Directions::LEFT)) && (direction & (1 << Directions::RIGHT)))
 	{
-		direction &= ~( ( 1 << Directions::LEFT ) | ( 1 << Directions::RIGHT ) );
+		direction &= ~((1 << Directions::LEFT) | (1 << Directions::RIGHT));
 	}
 	
-	if ( ( direction & ( 1 << Directions::FORWARD ) ) and ( direction & ( 1 << Directions::DOWN ) ) )
+	if ((direction & (1 << Directions::FORWARD)) && (direction & (1 << Directions::DOWN)))
 	{
-		direction &= ~( ( 1 << Directions::FORWARD ) | ( 1 << Directions::DOWN ) );
+		direction &= ~((1 << Directions::FORWARD) | (1 << Directions::DOWN));
 	}
 	
-	if ( direction == 0 )
+	if (direction == 0)
 	{
-		this->SetMoving( false );
+		this->SetMoving(false);
 	}
 	else
 	{
-		if ( ( direction & ( 1 << this->direction ) ) == 0 )
+		if ((direction & (1 << this->direction)) == 0)
 		{
-			for ( int i = 0; i < Directions::NUM_DIRECTIONS; i++ )
+			for (size_t i = 0; i < Directions::NUM_DIRECTIONS; i++)
 			{
-				if ( direction & ( 1 << i ) )
+				if (direction & (1 << i))
 				{
 					this->GetAnimation()->Stop();
 					
@@ -127,20 +129,20 @@ void CharacterTexture::SetDirection( int direction )
 	
 }
 
-AnimatedTexture* CharacterTexture::GetAnimation()
+SP<AnimatedTexture> CharacterTexture::GetAnimation()
 {
-	return this->top[ this->action ][ this->direction ];
+	return this->top[this->action][this->direction];
 }
 
 bool CharacterTexture::Update()
 {
 	SDL_Point point = this->GetPos();
-	this->GetAnimation()->Move( point.x, point.y );
+	this->GetAnimation()->Move(point.x, point.y);
 	
-	if ( !this->GetAnimation()->Update() )
+	if (!this->GetAnimation()->Update())
 	{
-		this->SetAction( WALK, true );
-		this->SetMoving( false );
+		this->SetAction(WALK, true);
+		this->SetMoving(false);
 		this->GetAnimation()->Stop();
 	}
 	

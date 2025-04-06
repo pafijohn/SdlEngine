@@ -8,7 +8,7 @@ public:
 	
 	bool IsDisplayed();
 	void ToggleDisplayed();
-	void SetDisplayed( bool display );
-	void Show();
-	void Hide();
+	virtual void SetDisplayed(bool display);
+	virtual void Show();
+	virtual void Hide();
 };

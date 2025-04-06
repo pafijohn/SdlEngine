@@ -1,9 +1,15 @@
+#pragma once
+
 #include <SDL.h>
 #include <string>
 #include <vector>
 
+#include "SdlRect.h"
+#include "Pointers.h"
 #include "Renderable.h"
 #include "Positionable.h"
+
+using namespace Pointers;
 
 struct TextChunk
 {
@@ -11,9 +17,12 @@ struct TextChunk
 	std::string identifier;
 };
 
-class Text: public Renderable, public Positionable
+class Text:
+	public Renderable,
+	public Positionable
 {
-	std::vector< TextChunk* > chunks;
+protected:
+	std::vector< SP< TextChunk > > chunks;
 	int background;
 	
 public:
@@ -30,10 +39,12 @@ public:
 	~Text();
 	
 	void Clear();
-	void SetBackground( int background );
+	void SetBackground(int background);
+	
+	void GetRect(SdlRect& rect);
 	
 	virtual bool Update();
 	virtual void Render();
 	
-	void AddText( const std::string& text, const std::string& identifier = "" );
+	virtual void AddText(const std::string& text, const std::string& identifier = "");
 };

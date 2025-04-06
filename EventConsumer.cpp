@@ -4,23 +4,22 @@
 std::stack< EventConsumer* > EventConsumer::consumers;
 
 // Static Methods
-
-void EventConsumer::Push( EventConsumer* consumer )
+void EventConsumer::Push(EventConsumer* consumer)
 {
-	if ( consumers.size() > 0 )
+	if (consumers.size() > 0)
 	{
 		consumers.top()->isActive = false;
 	}
 	
 	consumer->keysPressed.clear();
 	consumer->isActive = true;
-	consumers.push( consumer );
+	consumers.push(consumer);
 }
 
 void EventConsumer::Pop()
 {
 	EventConsumer* consumer;
-	if ( consumers.size() > 0 )
+	if (consumers.size() > 0)
 	{
 		consumer = consumers.top();
 		consumer->isActive = false;
@@ -30,7 +29,7 @@ void EventConsumer::Pop()
 		consumers.pop();
 	}
 	
-	if ( consumers.size() > 0 )
+	if (consumers.size() > 0)
 	{
 		consumer = consumers.top();
 		consumer->isActive = true;
@@ -39,71 +38,75 @@ void EventConsumer::Pop()
 	}
 }
 
-void EventConsumer::KeyPressed( int keyCode )
+void EventConsumer::KeyPressed(int keyCode)
 {
-	if ( consumers.size() > 0 )
+	if (consumers.size() > 0)
 	{
-		consumers.top()->OnKeyDown( keyCode );
+		consumers.top()->OnKeyDown(keyCode);
 	}
 }
 
-void EventConsumer::KeyReleased( int keyCode )
+void EventConsumer::KeyReleased(int keyCode)
 {
-	if ( consumers.size() > 0 )
+	if (consumers.size() > 0)
 	{
-		consumers.top()->OnKeyUp( keyCode );
+		consumers.top()->OnKeyUp(keyCode);
 	}
 }
 
-void EventConsumer::ButtonPressed( const SDL_MouseButtonEvent& event )
+void EventConsumer::ButtonPressed(const SDL_MouseButtonEvent& event)
 {
-	if ( consumers.size() > 0 )
+	if (consumers.size() > 0)
 	{
-		consumers.top()->OnButtonPressed( event );
+		consumers.top()->OnButtonPressed(event);
 	}
 }
 
 // Instance Methods
-
 EventConsumer::EventConsumer()
 {
 	this->isActive = false;
 }
 
+bool EventConsumer::IsActiveConsumer()
+{
+	return this->isActive;
+}
+
 void EventConsumer::SetAsActiveConsumer()
 {
-	if ( !this->isActive )
+	if (!this->IsActiveConsumer())
 	{
-		EventConsumer::Push( this );
+		EventConsumer::Push(this);
 	}
 }
 
 void EventConsumer::ClearAsActiveConsumer()
 {
-	if ( this->isActive )
+	if (this->IsActiveConsumer())
 	{
 		EventConsumer::Pop();
 	}
 }
 
-void EventConsumer::OnKeyDown( int keyCode )
+void EventConsumer::OnKeyDown(int keyCode)
 {
-	this->keysPressed.insert( keyCode );
-	this->cycleKeys.insert( keyCode );
+	this->keysPressed.insert(keyCode);
+	this->cycleKeys.insert(keyCode);
 }
 
-void EventConsumer::OnKeyUp( int keyCode )
+void EventConsumer::OnKeyUp(int keyCode)
 {
-	KeySet::iterator it = this->keysPressed.find( keyCode );
-	if ( it != this->keysPressed.end() )
+	KeySet::iterator it = this->keysPressed.find(keyCode);
+	if (it != this->keysPressed.end())
 	{
-		this->keysPressed.erase( it );
+		this->keysPressed.erase(it);
 	}
 }
 
-void EventConsumer::OnButtonPressed( const SDL_MouseButtonEvent& event )
+void EventConsumer::OnButtonPressed(const SDL_MouseButtonEvent& event)
 {
-	this->cycleButton.push_back( event );
+	this->cycleButton.push_back(event);
 }
 
 void EventConsumer::Clear()

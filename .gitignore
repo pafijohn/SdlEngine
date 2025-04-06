@@ -1,0 +1,6 @@
+HeapShimRemove.reg
+SdlGame
+.vs
+packages
+x64
+scripts/__pycache__

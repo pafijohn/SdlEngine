@@ -20,22 +20,24 @@ SdlTexture::~SdlTexture()
 	this->Clean();
 }
 
-bool SdlTexture::Load( const std::string& filename )
+bool SdlTexture::Load(const std::string& filename)
 {
-	this->surface = TextureManager::GetSurface( filename );
-	this->texture = TextureManager::GetTexture( filename );
+	this->surface = TextureManager::GetSurface(filename);
+	this->texture = TextureManager::GetTexture(filename);
 	
 	this->ResetRects();
+	
+	return !!this->surface && !!this->texture;
 }
 
 void SdlTexture::Clean()
 {
-	if ( this->texture )
+	if (this->texture)
 	{
 		this->texture = nullptr;
 	}
 	
-	if ( this->surface )
+	if (this->surface)
 	{
 		this->surface = nullptr;
 	}
@@ -43,7 +45,7 @@ void SdlTexture::Clean()
 
 void SdlTexture::FlipVertical()
 {	
-	if ( flip & SDL_FLIP_VERTICAL )
+	if (flip & SDL_FLIP_VERTICAL)
 	{
 		this->flip &= ~SDL_FLIP_VERTICAL;
 	}
@@ -55,7 +57,7 @@ void SdlTexture::FlipVertical()
 
 void SdlTexture::FlipHorizontal()
 {
-	if ( flip & SDL_FLIP_HORIZONTAL )
+	if (flip & SDL_FLIP_HORIZONTAL)
 	{
 		this->flip &= ~SDL_FLIP_HORIZONTAL;
 	}
@@ -65,48 +67,48 @@ void SdlTexture::FlipHorizontal()
 	}
 }
 
-void SdlTexture::SetRotatationCenter( int x, int y )
+void SdlTexture::SetRotatationCenter(int x, int y)
 {
 	this->center.x = x;
 	this->center.y = y;
 }
 
-void SdlTexture::Rotate( double rotation )
+void SdlTexture::Rotate(double rotation)
 {
 	this->rotation = rotation;
 }
 
-void SdlTexture::SetAlpha( Uint8 alpha )
+void SdlTexture::SetAlpha(Uint8 alpha)
 {
-	SDL_SetTextureAlphaMod( this->texture, alpha );
+	SDL_SetTextureAlphaMod(this->texture, alpha);
 }
 
-void SdlTexture::SetTextureColorMod( const SdlColor& color )
+void SdlTexture::SetTextureColorMod(const SdlColor& color)
 {
-	SDL_SetTextureColorMod( this->texture, color.r, color.g, color.b );
+	SDL_SetTextureColorMod(this->texture, color.r, color.g, color.b);
 }
 
-void SdlTexture::Crop( int x, int y, int w, int h )
+void SdlTexture::Crop(int x, int y, int w, int h)
 {
-	this->clippingRect.Update( x, y, w, h );
+	this->clippingRect.Update(x, y, w, h);
 }
 
-void SdlTexture::Move( const SDL_Point& point )
+void SdlTexture::Move(const SDL_Point& point)
 {
-	this->Move( point.x, point.y );
+	this->Move(point.x, point.y);
 }
 
-void SdlTexture::Move( int x, int y )
+void SdlTexture::Move(int x, int y)
 {
-	this->renderRect.Move( x, y );
+	this->renderRect.Move(x, y);
 }
 
-void SdlTexture::Scale( int w, int h )
+void SdlTexture::Scale(int w, int h)
 {
-	this->renderRect.Scale( w, h );
+	this->renderRect.Scale(w, h);
 }
 
-bool SdlTexture::CreateRGBTexture( int width, int height, const SdlColor& color )
+bool SdlTexture::CreateRGBTexture(int width, int height, const SdlColor& color)
 {
 	Uint32 amask;
 
@@ -118,26 +120,26 @@ bool SdlTexture::CreateRGBTexture( int width, int height, const SdlColor& color 
 	amask = 0xff000000;
 #endif
 	
-	SDL_Surface* surface_ = SDL_CreateRGBSurface( 0, width, height, 32, 0, 0, 0, amask );
+	SDL_Surface* surface_ = SDL_CreateRGBSurface(0, width, height, 32, 0, 0, 0, amask);
 	
-	if ( surface_ )
+	if (surface_)
 	{
-		SDL_FillRect( surface_, NULL, SDL_MapRGBA( surface_->format, color.r, color.g, color.b, color.a ) );
+		SDL_FillRect(surface_, NULL, SDL_MapRGBA(surface_->format, color.r, color.g, color.b, color.a));
 	}
 	
-	this->SetSurface( surface_ );
+	this->SetSurface(surface_);
 	
 	return !!this->texture;
 }
 
-void SdlTexture::SetSurface( SDL_Surface* surface )
+void SdlTexture::SetSurface(SDL_Surface* surface)
 {
 	this->Clean();
 	this->surface = surface;
 	
-	if ( this->surface )
+	if (this->surface)
 	{
-		this->texture = SDL_CreateTextureFromSurface( renderer, this->surface );
+		this->texture = SDL_CreateTextureFromSurface(renderer, this->surface);
 		
 		this->ResetRects();
 	}
@@ -145,7 +147,7 @@ void SdlTexture::SetSurface( SDL_Surface* surface )
 
 void SdlTexture::ResetRects()
 {
-	if ( this->surface )
+	if (this->surface)
 	{
 		this->clippingRect.w = this->surface->w;
 		this->clippingRect.h = this->surface->h;
@@ -160,9 +162,9 @@ bool SdlTexture::IsValid()
 	return !!this->texture;
 }
 
-bool SdlTexture::CollidesWith( SdlTexture* other )
+bool SdlTexture::CollidesWith(SdlTexture* other)
 {
-	return this->renderRect.CollidesWith( other->renderRect );
+	return this->renderRect.CollidesWith(other->renderRect);
 }
 
 bool SdlTexture::RenderBoundingBox()
@@ -173,13 +175,15 @@ bool SdlTexture::RenderBoundingBox()
 	int yh = y + this->renderRect.h;
 	
 	// Top Left to Top Right
-	SDL_RenderDrawLine( renderer, x, y, xw, y );
+	SDL_RenderDrawLine(renderer, x, y, xw, y);
 	// Top Right to Bottom Right
-	SDL_RenderDrawLine( renderer, xw, y, xw, yh );
+	SDL_RenderDrawLine(renderer, xw, y, xw, yh);
 	// Bottom Right to Bottom Left
-	SDL_RenderDrawLine( renderer, xw, yh, x, yh );
+	SDL_RenderDrawLine(renderer, xw, yh, x, yh);
 	// Bottom Left to Top Left
-	SDL_RenderDrawLine( renderer, x, yh, x, y );
+	SDL_RenderDrawLine(renderer, x, yh, x, y);
+	
+	return true;
 }
 
 bool SdlTexture::Update()
@@ -191,7 +195,7 @@ void SdlTexture::Render()
 {
 	SdlRect modRender = this->renderRect;
 	
-	if ( this->isRelative )
+	if (this->isRelative)
 	{
 		SDL_Point pos = camera.GetPos();
 		
@@ -199,30 +203,30 @@ void SdlTexture::Render()
 		modRender.y -= pos.y;
 	}
 	
-	SDL_RenderCopyEx( renderer, this->texture, &this->clippingRect, &modRender, this->rotation, &this->center, ( SDL_RendererFlip )this->flip );
+	SDL_RenderCopyEx(renderer, this->texture, &this->clippingRect, &modRender, this->rotation, &this->center, (SDL_RendererFlip)this->flip);
 }
 
-void SdlTexture::GetDimentions( int* width, int* height )
+void SdlTexture::GetDimentions(int* width, int* height)
 {
-	if ( width )
+	if (width)
 	{
 		*width = this->renderRect.w;
 	}
 	
-	if ( height )
+	if (height)
 	{
 		*height = this->renderRect.h;
 	}
 }
 
-void SdlTexture::GetLocation( int* x, int* y )
+void SdlTexture::GetLocation(int* x, int* y)
 {
-	if ( x )
+	if (x)
 	{
 		*x = this->renderRect.x;
 	}
 	
-	if ( y )
+	if (y)
 	{
 		*y = this->renderRect.y;
 	}

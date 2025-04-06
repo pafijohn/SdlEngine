@@ -9,15 +9,15 @@
 #include "Character.h"
 #include "CharacterChat.h"
 
-ChatMessage::ChatMessage( const std::string& msg )
+ChatMessage::ChatMessage(const std::string& msg)
 {
 	this->msg = msg;
-	this->fadeTimer.Start( 5000 );
+	this->fadeTimer.Start(5000);
 }
 
-std::string ChatMessage::GetMsg()
+const std::string& ChatMessage::GetMsg()
 {
-	if ( this->fadeTimer.IsExpired() )
+	if (this->fadeTimer.IsExpired())
 	{
 		this->msg = "";
 	}
@@ -27,16 +27,16 @@ std::string ChatMessage::GetMsg()
 
 CharacterChat::CharacterChat()
 {
-	Layers::AddToLayer( this, Layers::HUD );
-	this->activateTimer.Start( 0 );
-	this->pipeTimer.Start( 0 );
+	Layers::AddToLayer(this, Layers::HUD);
+	this->activateTimer.Start(0);
+	this->pipeTimer.Start(0);
 	this->pipePos = 0;
 	this->displayPipe = true;
 }
 
 bool CharacterChat::Update()
 {
-	if ( !this->isActive )
+	if (!this->IsActiveConsumer())
 	{
 		return false;
 	}
@@ -44,7 +44,7 @@ bool CharacterChat::Update()
 	static bool initted = false;
 	static std::map<char, char> caps;
 	
-	if ( !initted )
+	if (!initted)
 	{
 		caps['0'] = '!';
 		caps['1'] = '@';
@@ -70,32 +70,33 @@ bool CharacterChat::Update()
 		initted = true;
 	}
 	
-	const bool hasShift = this->keysPressed.find( SDLK_LSHIFT ) != this->keysPressed.end() or this->keysPressed.find( SDLK_RSHIFT ) != this->keysPressed.end();
+	const bool hasShift = this->keysPressed.find(SDLK_LSHIFT) != this->keysPressed.end() || this->keysPressed.find(SDLK_RSHIFT) != this->keysPressed.end();
+	KeySet local = this->cycleKeys;
 	
-	for ( KeySet::iterator it = this->cycleKeys.begin(); it != this->cycleKeys.end(); it++ )
+	for (auto it = local.begin(); it != local.end(); it++)
 	{
 		int c = *it;
 		char mappedChar = c & 0x7F;
 		
-		if ( c <= 0x7F and isprint( c ) )
+		if (c <= 0x7F && isprint(c))
 		{
-			if ( hasShift )
+			if (hasShift)
 			{
-				if ( caps.count( mappedChar ) > 0 )
+				if (caps.count(mappedChar) > 0)
 				{
 					mappedChar = caps[ mappedChar ];
 				}
 				
-				mappedChar = toupper( mappedChar );
+				mappedChar = toupper(mappedChar);
 			}
 			
 			char temp[] = { mappedChar, '\0' };
-			this->chat.insert( this->pipePos, temp );
+			this->chat.insert(this->pipePos, temp);
 			this->pipePos++;
 		}
 		else
 		{
-			switch ( c )
+			switch (c)
 			{
 				case SDLK_HOME:
 				{
@@ -109,7 +110,7 @@ bool CharacterChat::Update()
 				}
 				case SDLK_LEFT:
 				{
-					if ( this->pipePos )
+					if (this->pipePos)
 					{
 						this->pipePos--;
 					}
@@ -117,7 +118,7 @@ bool CharacterChat::Update()
 				}
 				case SDLK_RIGHT:
 				{
-					if ( this->pipePos < this->chat.size() )
+					if (this->pipePos < this->chat.size())
 					{
 						this->pipePos++;
 					}
@@ -125,18 +126,18 @@ bool CharacterChat::Update()
 				}
 				case SDLK_DELETE:
 				{
-					if ( this->pipePos < this->chat.size() )
+					if (this->pipePos < this->chat.size())
 					{
-						this->chat.erase( this->chat.begin() + this->pipePos, this->chat.begin() + this->pipePos + 1 );
+						this->chat.erase(this->chat.begin() + this->pipePos, this->chat.begin() + this->pipePos + 1);
 					}
 					break;
 				}
 				case SDLK_BACKSPACE:
 				{
-					if ( this->pipePos )
+					if (this->pipePos)
 					{
 						this->pipePos--;
-						this->chat = this->chat.substr( 0, this->chat.size() - 1 );
+						this->chat = this->chat.substr(0, this->chat.size() - 1);
 					}
 					break;
 				}
@@ -160,49 +161,53 @@ void CharacterChat::Render()
 	
 	auto messagesProxy = this->messages;
 	
-	for ( auto it = messagesProxy.begin(); it != messagesProxy.end(); it++ )
+	for (auto it = messagesProxy.begin(); it != messagesProxy.end(); it++)
 	{
-		std::string msg = ( *it )->GetMsg();
-		if ( msg.empty() )
+		std::string msg = (*it)->GetMsg();
+		if (msg.empty())
 		{
-			delete ( *it );
 			this->messages.pop_front();
 		}
 		else
 		{
-			text.AddText( msg + "\r\n" );
+			text.AddText(msg + "\r\n");
 		}
 	}
 	
-	if ( this->isActive )
+	std::string msg;
+	if (this->IsActiveConsumer())
 	{
-		std::string msg = this->chat;
+		msg = this->chat + "\r\n";
 		
-		if ( this->displayPipe )
+		if (this->displayPipe)
 		{
-			msg.insert( this->pipePos, "|" );
+			msg.insert(this->pipePos, "|");
 		}
 		else
 		{
-			msg.insert( this->pipePos, " " );
+			msg.insert(this->pipePos, " ");
 		}
 		
-		text.AddText( msg );
-		
-		if ( this->pipeTimer.IsExpired() )
+		if (this->pipeTimer.IsExpired())
 		{
 			this->displayPipe = !this->displayPipe;
-			this->pipeTimer.Start( 500 );
+			this->pipeTimer.Start(500);
 		}
 	}
+	else
+	{
+		// just to hold the place of the typed text area
+		msg = " \r\n";
+	}
 	
-	text.Move( 50, 500 );
+	text.AddText(msg);
+	text.Move(50, 500);
 	text.Render();
 }
 
 void CharacterChat::Activate()
 {
-	if ( this->activateTimer.IsExpired() )
+	if (this->activateTimer.IsExpired())
 	{
 		this->SetAsActiveConsumer();
 	}
@@ -210,26 +215,25 @@ void CharacterChat::Activate()
 
 void CharacterChat::Deactivate()
 {
-	if ( this->isActive )
+	if (this->IsActiveConsumer())
 	{
-		if ( this->chat.size() > 0 )
+		if (this->chat.size() > 0)
 		{
-			ChatMessage* msg = new ChatMessage( this->chat );
-			this->messages.push_back( msg );
+			this->messages.push_back(new ChatMessage(this->chat));
 			
 			std::vector<std::string> split;
-			splitString( this->chat, split );
+			splitString(this->chat, split);
 			
-			if ( split.size() == 2 )
+			if (split.size() == 2)
 			{
-				if ( split[ 0 ] == "damage" )
+				if (split[ 0 ] == "damage")
 				{
 					int amount;
-					int fields = sscanf( split[ 1 ].data(), "%d", &amount );
+					int fields = sscanf_s(split[ 1 ].data(), "%d", &amount);
 					
-					if ( fields == 1 )
+					if (fields == 1)
 					{
-						character->AddHealth( -amount );
+						character->AddHealth(-amount);
 					}
 				}
 			}
@@ -238,7 +242,7 @@ void CharacterChat::Deactivate()
 		this->chat = "";
 		this->pipePos = 0;
 		this->displayPipe = false;
-		this->activateTimer.Start( 500 );
-		EventConsumer::Pop();
+		this->activateTimer.Start(50);
+		this->ClearAsActiveConsumer();
 	}
 }

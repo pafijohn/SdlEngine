@@ -1,0 +1,7 @@
+keybindings for different objects
+attachment points for holding objects
+drag and drop items
+monsters (art and ai)
+make chat look better
+add stacked texture
+position history to leave footprints

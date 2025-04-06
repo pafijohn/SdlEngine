@@ -1,15 +1,18 @@
 #include <SDL.h>
+#include <cmath>
 #include <cstdio>
 #include <time.h>
 #include <cstdint>
 #include <stdlib.h>
 #include <Python.h>
+#include <filesystem>
 
 #include "Hud.h"
 #include "Map.h"
 #include "Timer.h"
 #include "Utils.h"
 #include "Cloud.h"
+#include "Object.h"
 #include "Layers.h"
 #include "MainMenu.h"
 #include "Character.h"
@@ -22,9 +25,17 @@
 #include "MixerManager.h"
 #include "TextureManager.h"
 
-int main( int argc, char* args[] )
+#include "HashMap.h"
+#include "KeyHash.h"
+
+using namespace Pointers;
+
+int main(int argc, char* args[])
 {
 	bool quit = false;
+	
+	QuadTreePool::Init();
+	
 	SdlGlobals::Initialize();
 	TextureManager::Preload();
 	TextManager::Preload();
@@ -33,32 +44,39 @@ int main( int argc, char* args[] )
 	
 	character = new Character();
 	
-	character->SetSlot( Equipped::BODY, new Armor() );
-	character->AddItem( new Chest() );
-	character->AddItem( new Ring() );
+	character->SetSlot(Equipped::BODY, new Armor());
+	character->AddItem(new Bread());
+	character->AddItem(new Ring());
 	character->SetAsActiveConsumer();
 	
 	mainMenu = new MainMenu();
-	mainMenu->display = true;
-	mainMenu->SetAsActiveConsumer();
 	
 	hud = new Hud();
 	
-	Layers::AddToLayer( character, Layers::LEVEL );
-	Layers::AddToLayer( mainMenu, Layers::HUD );
+	Layers::AddToLayer(character, Layers::LEVEL);
+	Layers::AddToLayer(mainMenu, Layers::HUD);
 	
-	wchar_t* program = L"SdlTest";
+	const wchar_t* program = L"SdlTest";
 	
-	Py_SetProgramName( program );  /* optional but recommended */
+	//Py_SetProgramName(program);  /* optional but recommended */
 	InitModules();
 	Py_Initialize();
+
+	std::filesystem::path currentPath = std::filesystem::current_path();
+	std::string modulePath = currentPath.string();
+	//modulePath += "\\python_scripts";
+
+	PyObject* sys_path = PySys_GetObject("path");
+	PyObject* new_path = PyUnicode_FromString(modulePath.c_str());
+	int result = PyList_Append(sys_path, new_path);
 	
-	PyObject* pModule = PyImport_ImportModule( "main" );
-	PyObject* pFunc = PyObject_GetAttrString( pModule, "init" );
+	PyObject* pModule = PyImport_ImportModule("scripts");
+	PyErr_Print();
+	PyObject* pFunc = PyObject_GetAttrString(pModule, "init");
 	
-	if ( pFunc && PyCallable_Check( pFunc ) )
+	if (pFunc && PyCallable_Check(pFunc))
 	{
-		PyObject_CallObject( pFunc, NULL );
+		PyObject_CallObject(pFunc, NULL);
 	}
 	
 	SDL_Event event;
@@ -71,18 +89,18 @@ int main( int argc, char* args[] )
 	const int tickRate = 1000.0 / 50.0;
 	uint32_t nextTick = tick;
 		
-	while( !quit )
+	while(!quit)
 	{
 		tick = SDL_GetTicks();
 				
-		if ( tick >= nextTick )
+		if (tick >= nextTick)
 		{
 			nextTick += tickRate;
-			while( SDL_PollEvent( &event ) != 0 and !quit )
+			while(SDL_PollEvent(&event) != 0 && !quit)
 			{
 				// https://wiki.libsdl.org/SDL_EventType
 				// https://wiki.libsdl.org/SDL_Keycode
-				switch( event.type )
+				switch(event.type)
 				{
 					case SDL_QUIT:
 					{
@@ -91,18 +109,17 @@ int main( int argc, char* args[] )
 					}
 					case SDL_KEYDOWN:
 					{
-						EventConsumer::KeyPressed( event.key.keysym.sym );
-						
+						EventConsumer::KeyPressed(event.key.keysym.sym);
 						break;
 					}
 					case SDL_KEYUP:
 					{
-						EventConsumer::KeyReleased( event.key.keysym.sym );
+						EventConsumer::KeyReleased(event.key.keysym.sym);
 						break;
 					}
-					case SDL_MOUSEBUTTONDOWN:
+					case SDL_MOUSEBUTTONUP:
 					{
-						EventConsumer::ButtonPressed( event.button );
+						EventConsumer::ButtonPressed(event.button);
 						break;
 					}
 				}
@@ -111,29 +128,30 @@ int main( int argc, char* args[] )
 			Layers::Update();
 		}
 		
-		if ( tick >= nextFps )
+		if (tick >= nextFps)
 		{
 			nextFps += fpsRate;
 			
-			SDL_RenderClear( renderer );
+			SDL_RenderClear(renderer);
 			
 			Layers::Render();
 			
-			SDL_RenderPresent( renderer );
+			SDL_RenderPresent(renderer);
 		}
 		
-		while ( nextTick > SDL_GetTicks() + 1 and nextFps > SDL_GetTicks() + 1 )
+		while (nextTick > SDL_GetTicks() + 1 && nextFps > SDL_GetTicks() + 1)
 		{
-			SDL_Delay( 1 );
+			SDL_Delay(1);
 		}
 	}
 	
+	Layers::Clear();
 	SdlGlobals::Destroy();
 	SDL_Quit();
 	
-	if ( Py_FinalizeEx() < 0 )
+	if (Py_FinalizeEx() < 0)
 	{
-		printf( "Couldn't finanlize Python 3.6 properly." );
+		printf("Couldn't finalize Python properly.");
 	}
 	
 	return 0;

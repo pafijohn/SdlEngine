@@ -6,15 +6,9 @@
 
 Tile::Tile()
 {
-	this->Load( "res\\terrain.png" );
-	this->SetId( -1 );
+	this->Load("resources\\terrain.png");
+	this->SetId(-1);
 	this->Init();
-	this->isPassible = false;
-}
-
-bool Tile::IsPassible()
-{
-	return this->isPassible;
 }
 
 void Tile::Init()
@@ -25,11 +19,11 @@ void Tile::Init()
 	xIdx *= SPRITE_SIZE;
 	yIdx *= SPRITE_SIZE;
 	
-	this->Crop( xIdx, yIdx, SPRITE_SIZE, SPRITE_SIZE );
-	this->Scale( RENDER_SIZE, RENDER_SIZE );
+	this->Crop(xIdx, yIdx, SPRITE_SIZE, SPRITE_SIZE);
+	this->Scale(RENDER_SIZE, RENDER_SIZE);
 }
 
-void Tile::SetId( int id )
+void Tile::SetId(int id)
 {
 	this->id = id;
 }
@@ -41,86 +35,75 @@ void Tile::OnInteract()
 Wheat::Wheat()
 {
 	this->toggle = true;
-	this->timer.Start( 0 );
+	this->timer.Start(0);
 	this->available = true;
-	this->isPassible = false;
 }
 
 void Wheat::OnInteract()
 {
 	bool canPickup = character->inventory.HasSpace() && this->available;
 	
-	if ( canPickup )
+	if (canPickup)
 	{
-		if ( this->toggle )
+		if (this->toggle)
 		{
-			playSound( "sounds\\knifeSlice.wav" );
+			playSound("sounds\\knifeSlice.wav");
 		}
 		else
 		{
-			playSound( "sounds\\knifeSlice2.wav" );
+			playSound("sounds\\knifeSlice2.wav");
 		}
 		
-		character->AddItem( new Bread() );
+		character->AddItem(new Bread());
 		this->toggle = !this->toggle;
-		this->timer.Start( 10000 );
+		this->timer.Start(10000);
 		this->available = false;
-		this->isPassible = true;
+		this->SetHasCollision(false);
 	}
 }
 
 bool Wheat::Update()
 {
-	if ( !this->available and this->timer.IsExpired() )
+	if (!this->available && this->timer.IsExpired())
 	{
 		this->available = true;
+		this->SetHasCollision(true);
 	}
-	
-	if ( this->available and this->isPassible )
-	{
-		SdlRect charColl;
-		character->GetCollisionProxy( charColl );
-		
-		if ( !this->renderRect.CollidesWith( charColl ) )
-		{
-			this->isPassible = false;
-		}
-	}
-	
+
 	return true;
 }
 
 void Wheat::Render()
 {
-	if ( !this->available )
+	if (!this->available)
 	{
-		this->SetAlpha( 0x80 );
+		this->SetAlpha(0x80);
 	}
 	
 	Tile::Render();
 	
-	this->SetAlpha( 0xFF );
+	this->SetAlpha(0xFF);
 }
 
 Ore::Ore()
 {
-	this->timer.Start( 0 );
+	this->timer.Start(0);
 	this->available = true;
 }
 
 void Ore::OnInteract()
 {
-	if ( this->available )
+	if (this->available)
 	{
-		character->AddItem( new OreItem() );
-		this->timer.Start( 10000 );
+		character->AddItem(new OreItem());
+		this->timer.Start(10000);
 		this->available = false;
 	}
 }
 
 bool Ore::Update()
 {
-	if ( !this->available and this->timer.IsExpired() )
+	if (!this->available && this->timer.IsExpired())
 	{
 		this->available = true;
 	}
@@ -130,20 +113,20 @@ bool Ore::Update()
 
 void Ore::Render()
 {
-	if ( !this->available )
+	if (!this->available)
 	{
-		this->SetAlpha( 0x80 );
+		this->SetAlpha(0x80);
 	}
 	
 	Tile::Render();
 	
-	this->SetAlpha( 0xFF );
+	this->SetAlpha(0xFF);
 }
 
 ChestTile::ChestTile()
 {
-	this->isPassible = true;
-	this->SetId( 590 );
+	this->SetHasCollision(true);
+	this->SetId(590);
 	this->Init();
 	
 	// TODO
@@ -153,30 +136,19 @@ ChestTile::ChestTile()
 	// intentory does not prevent the existance of it
 	this->inventoryDisplay = nullptr;
 	
-	this->AddItem( new Bread() );
+	this->AddItem(new Bread());
 }
 
 bool ChestTile::Update()
-{
-	if ( this->isPassible )
-	{
-		SdlRect temp;
-		character->GetCollisionProxy( temp );
-		
-		if ( !this->renderRect.CollidesWith( temp ) )
-		{
-			this->isPassible = false;
-		}
-	}
-	
+{	
 	return true;
 }
 
 void ChestTile::OnInteract()
 {
-	if ( this->inventoryDisplay == nullptr )
+	if (this->inventoryDisplay.IsNull())
 	{
-		this->inventoryDisplay = new InventoryDisplay( this );
+		this->inventoryDisplay = new InventoryDisplay(*this);
 	}
 	
 	this->inventoryDisplay->SetAsActiveConsumer();
@@ -187,7 +159,8 @@ void ChestTile::Render()
 {
 	Tile::Render();
 	
-	if ( this->inventoryDisplay )
+	//if (!this->inventoryDisplay.IsNull())
+	if (this->inventoryDisplay)
 	{
 		this->inventoryDisplay->Render();
 	}

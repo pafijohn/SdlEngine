@@ -4,43 +4,49 @@
 #include <vector>
 
 #include "Timer.h"
+#include "Pointers.h"
+#include "Containers.h"
 #include "SdlTexture.h"
 #include "Positionable.h"
 
 struct FrameInfo
 {
 	std::string sprite;
-	int numFrames;
+	size_t numFrames;
 	
-	int frameWidth;
-	int frameHeight;
+	size_t frameWidth;
+	size_t frameHeight;
 	
-	int startX;
-	int startY;
+	size_t startX;
+	size_t startY;
 	
-	int incX;
-	int incY;
+	size_t incX;
+	size_t incY;
 	
-	int scaleW;
-	int scaleH;
+	size_t scaleW;
+	size_t scaleH;
 };
 
-class AnimatedTexture: public Renderable, public Positionable
+class AnimatedTexture:
+	public Renderable,
+	public Positionable
 {
-	int frame;
-	std::vector< SdlTexture* > frames;
+	size_t frame;
+	Containers::Vector<Pointers::SmartPointer<SdlTexture> > frames;
 	
 	const static int FRAME_DELAY = 125;
 	
 	Timer timer;
 	FrameInfo frameInfo;
 public:
-	AnimatedTexture( const FrameInfo& frameInfo );
+	AnimatedTexture(const FrameInfo& frameInfo);
+	~AnimatedTexture();
 	
 	SdlTexture* GetCurrentFrame();
 	
 	void Play();
 	void Stop();
+	void Repeat();
 	
 	virtual bool Update();
 	virtual void Render();

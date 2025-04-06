@@ -3,11 +3,16 @@
 #include "Event.h"
 #include "SdlTexture.h"
 
-#include <vector>
+#include "Entity.h"
+#include "Containers.h"
+#include "EntityTexture.h"
 
-class Item: public SdlTexture
+class Item:
+	public EntityTexture
 {
 public:
+	static const int SPRITE_SIZE = 64;
+
 	std::string name;
 	
 	Item();
@@ -57,16 +62,18 @@ public:
 	virtual bool Use();
 };
 
-// Inherited so as to have swap
-class Inventory: public std::vector<Item*>
+class Inventory:
+	public Containers::Vector<Item*>
 {
-	int itemCount;
+	size_t itemCount;
 public:
+	static const int MAX_ITEMS = 20;
+	
 	Inventory();
 	
-	bool PushBack( Item* item );
+	bool PushItem(Item* item);
 	bool HasSpace();
-	void ClearItem( int i );
+	void ClearItem(size_t i);
 };
 
 class Inventoried
@@ -74,11 +81,12 @@ class Inventoried
 public:
 	Inventory inventory;
 	
-	void Use( int i );
-	void AddItem( Item* item );
-	Item* GetItem( int i );
-	Item* GetItem( const std::string& itemName, int* i = nullptr );
-	void RemoveItem( int i );
+	void Use(size_t i);
+	void AddItem(Item* item);
+	Item* GetItem(size_t i);
+	Item* GetItem(const std::string& itemName, size_t* i = nullptr);
+	void RemoveItem(size_t i);
+	void RemoveItem(Item* item);
 };
 
 class Equipped
@@ -102,6 +110,6 @@ public:
 	};
 	
 	Equipped();
-	void SetSlot( int slot, Item* item );
-	Item* GetSlot( int slot );
+	void SetSlot(int slot, Item* item);
+	Item* GetSlot(int slot);
 };

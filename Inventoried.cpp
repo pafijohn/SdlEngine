@@ -9,6 +9,7 @@
 Item::Item()
 {
 	this->isRelative = false;
+	this->SetHasCollision(true); // Collision for clicking purposes
 }
 
 bool Item::Use()
@@ -28,18 +29,19 @@ void Item::OnDrop()
 
 Bread::Bread()
 {
-	this->Load( "res\\items\\bread.png" );
+	this->Load("resources\\items\\bread.png");
+	this->name = "Bread";
 }
 
 bool Bread::Use()
 {
-	character->AddHealth( 10 );
-	return true;
+	return character->AddHealth(10);
 }
 
 Armor::Armor()
 {
-	this->Load( "res\\items\\armor.png" );
+	this->Load("resources\\items\\armor.png");
+	this->name = "Armor";
 }
 
 bool Armor::Use()
@@ -49,23 +51,23 @@ bool Armor::Use()
 
 void Armor::OnPickUp()
 {
-	Modifier* mod = character->GetModifier( "ArmorModifier" );
+	Modifier* mod = character->GetModifier("ArmorModifier");
 	
-	if ( mod == nullptr )
+	if (mod == nullptr)
 	{
 		ArmorModifier* modifier = new ArmorModifier();
 		
-		character->SetModifier( "ArmorModifier", modifier );
+		character->SetModifier("ArmorModifier", modifier);
 	}
 }
 
 void Armor::OnDrop()
 {
-	Modifier* mod = character->GetModifier( "ArmorModifier" );
+	Modifier* mod = character->GetModifier("ArmorModifier");
 	
-	if ( mod )
+	if (mod)
 	{
-		character->SetModifier( "ArmorModifier", nullptr );		
+		character->SetModifier("ArmorModifier", nullptr);		
 		
 		delete mod;
 	}
@@ -73,7 +75,8 @@ void Armor::OnDrop()
 
 Ring::Ring()
 {
-	this->Load( "res\\items\\ring.png" );
+	this->Load("resources\\items\\ring.png");
+	this->name = "Ring";
 }
 
 bool Ring::Use()
@@ -83,23 +86,23 @@ bool Ring::Use()
 
 void Ring::OnPickUp()
 {
-	Modifier* mod = character->GetModifier( "RingModifier" );
+	Modifier* mod = character->GetModifier("RingModifier");
 	
-	if ( mod == nullptr )
+	if (mod == nullptr)
 	{
 		RingModifier* modifier = new RingModifier();
 		
-		character->SetModifier( "RingModifier", modifier );
+		character->SetModifier("RingModifier", modifier);
 	}
 }
 
 void Ring::OnDrop()
 {
-	Modifier* mod = character->GetModifier( "RingModifier" );
+	Modifier* mod = character->GetModifier("RingModifier");
 	
-	if ( mod )
+	if (mod)
 	{
-		character->SetModifier( "RingModifier", nullptr );		
+		character->SetModifier("RingModifier", nullptr);		
 		
 		delete mod;
 	}
@@ -107,22 +110,24 @@ void Ring::OnDrop()
 
 OreItem::OreItem()
 {
-	this->Load( "res\\items\\ring.png" );
+	this->Load("resources\\items\\ring.png");
+	this->name = "Ore";
 }
 
 Chest::Chest()
 {
-	this->Load( "res\\items\\chest.png" );
+	this->Load("resources\\items\\chest.png");
+	this->name = "Chest";
 }
 
 bool Chest::Use()
 {
 	SDL_Point point;
-	character->GetCenter( point );
+	character->GetCenter(point);
 	
-	point = Map::GetPosition( point, character->texture.direction, 1.0 );
+	point = Map::GetPosition(point, character->texture.direction, 1.0);
 	ChestTile* tile = new ChestTile();
-	bool put = Map::PutTile( tile, Layers::LEVEL, point.x, point.y );
+	bool put = Map::PutTile(tile, Layers::LEVEL, point.x, point.y);
 	
 	return put;
 }
@@ -130,67 +135,59 @@ bool Chest::Use()
 Inventory::Inventory()
 {
 	this->itemCount = 0;
+	for (size_t i = 0; i < Inventory::MAX_ITEMS; i++)
+	{
+		this->PushBack(nullptr);
+	}
 }
 
-bool Inventory::PushBack( Item* item )
+bool Inventory::PushItem(Item* item)
 {
-	bool pushable = this->size() < 20;
-	
-	if ( pushable )
+	for (size_t i = 0; i < this->Size(); i++)
 	{
-		this->push_back( item );
-	}
-	else
-	{
-		int idx;
+		Item* elem = this->At(i);
 		
-		for ( auto it = this->begin(); it != this->end() && !pushable; it++ )
+		if (elem == nullptr)
 		{
-			pushable = ( *it ) == nullptr;
+			this->Set(i, item);
+			this->itemCount++;
 			
-			if ( pushable )
-			{
-				idx = std::distance( this->begin(), it );
-				this->at( idx ) = item;
-			}
+			return true;
 		}
 	}
 	
-	if ( pushable )
-	{
-		this->itemCount++;
-	}
-	
-	return pushable;
+	return false;
 }
 
 bool Inventory::HasSpace()
 {
-	return this->itemCount < 20;
+	return this->itemCount < Inventory::MAX_ITEMS;
 }
 
-void Inventory::ClearItem( int i )
+void Inventory::ClearItem(size_t i)
 {
-	this->at( i ) = nullptr;
+	auto* elem = this->Set(i, nullptr);
 	this->itemCount--;
-}
-
-void Inventoried::Use( int i )
-{
-	Item* item = this->GetItem( i );
 	
-	if ( item )
+	if (elem)
 	{
-		if ( item->Use() )
-		{
-			this->RemoveItem( i );
-		}
+		delete elem;
 	}
 }
 
-void Inventoried::AddItem( Item* item )
+void Inventoried::Use(size_t i)
 {
-	if ( this->inventory.PushBack( item ) )
+	Item* item = this->GetItem(i);
+	
+	if (item && item->Use())
+	{
+		this->RemoveItem(i);
+	}
+}
+
+void Inventoried::AddItem(Item* item)
+{
+	if (this->inventory.PushItem(item))
 	{
 		item->OnPickUp();
 	}
@@ -201,38 +198,50 @@ void Inventoried::AddItem( Item* item )
 	}
 }
 
-Item* Inventoried::GetItem( int i )
+Item* Inventoried::GetItem(size_t i)
 {
-	return ( isBounded( i, 0, this->inventory.size() ) ) ? this->inventory[ i ] : nullptr;
+	return (isBounded(i, 0, this->inventory.Size())) ? this->inventory.At(i) : nullptr;
 }
 
-Item* Inventoried::GetItem( const std::string& itemName, int* i )
+Item* Inventoried::GetItem(const std::string& itemName, size_t* i)
 {
 	Item* item = nullptr;
 	
-	for ( int j = 0; j < this->inventory.size() and item == nullptr; j++ )
+	for (size_t j = 0; j < this->inventory.Size() && item == nullptr; j++)
 	{
-		if ( this->inventory[ j ]->name == itemName )
+		Item* _item = this->inventory.At(j);
+		
+		if (_item && _item->name == itemName)
 		{
-			if ( i )
+			if (i)
 			{
 				*i = j;
 			}
 			
-			item = this->inventory[ j ];
+			item = _item;
+			break;
 		}
 	}
 	
 	return item;
 }
 
-void Inventoried::RemoveItem( int i )
+void Inventoried::RemoveItem(size_t i)
 {
-	Item* item = GetItem( i );
+	Item* item = GetItem(i);
 	item->OnDrop();
-	delete item;
 	
-	this->inventory.ClearItem( i );
+	this->inventory.ClearItem(i);
+}
+
+void Inventoried::RemoveItem(Item* item)
+{
+	size_t idx = this->inventory.IndexOf(item);
+	
+	if (idx >= 0)
+	{
+		this->RemoveItem(idx);
+	}
 }
 
 Equipped::Equipped()
@@ -245,9 +254,9 @@ Equipped::Equipped()
 	this->offHand = nullptr;
 }
 
-void Equipped::SetSlot( int slot, Item* item )
+void Equipped::SetSlot(int slot, Item* item)
 {
-	switch ( slot )
+	switch (slot)
 	{
 		case HEAD:
 		{
@@ -283,11 +292,11 @@ void Equipped::SetSlot( int slot, Item* item )
 }
 
 
-Item* Equipped::GetSlot( int slot )
+Item* Equipped::GetSlot(int slot)
 {
 	Item* item;
 	
-	switch ( slot )
+	switch (slot)
 	{
 		case HEAD:
 		{

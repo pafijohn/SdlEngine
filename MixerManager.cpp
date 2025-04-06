@@ -180,7 +180,7 @@ void playMusic(const char* filename)
 	while (global != NULL)
 	{
 	    /* Phase out any current music */
-	    if (global->loop and !global->fade)
+	    if (global->loop && !global->fade)
 	    {
 	        if (music)
 	        {
@@ -191,7 +191,7 @@ void playMusic(const char* filename)
 	        global->fade = 1;
 	    }
 	    /* Set flag to remove any queued up music in favour of new music */
-	    else if (global->loop and global->fade)
+	    else if (global->loop && global->fade)
 	    {
 	        music = 1;
 	    }
@@ -319,7 +319,7 @@ static inline void audioCallback(void* userdata, uint8_t* stream, int len)
 		// If there is remaining sound
 	    if (sound->length > 0)
 	    {
-	        if (sound->fade and sound->loop)
+	        if (sound->fade && sound->loop)
 	        {
 	            music = 1;
 	            sound->volume--;
@@ -330,7 +330,7 @@ static inline void audioCallback(void* userdata, uint8_t* stream, int len)
 	            }
 	        }
 
-	        if (music and sound->loop and !sound->fade)
+	        if (music && sound->loop && !sound->fade)
 	        {
 	            tempLength = 0;
 	        }
@@ -349,7 +349,7 @@ static inline void audioCallback(void* userdata, uint8_t* stream, int len)
 	        sound = sound->next;
 	    }
 		// If you loop and dont fade
-	    else if (sound->loop and !sound->fade)
+	    else if (sound->loop && !sound->fade)
 	    {
 	        sound->buffer = sound->bufferTrue;
 	        sound->length = sound->lengthTrue;

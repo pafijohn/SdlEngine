@@ -1,33 +1,51 @@
 #include "Layers.h"
 
-std::vector< Renderable* > Layers::layers[ NUM_LAYERS ];
+Containers::Vector< Renderable* > Layers::layers[NUM_LAYERS];
 
-void Layers::AddToLayer( Renderable* renderable, int layer )
+void Layers::AddToLayer(Renderable* renderable, size_t layer)
 {
-	if ( layer >= BACKGROUND and layer < NUM_LAYERS )
+	if (layer >= BACKGROUND && layer < NUM_LAYERS)
 	{
-		layers[ layer ].push_back( renderable );
+		layers[layer].PushBack(renderable);
 	}
 }
 
 void Layers::Update()
 {
-	for ( int i = 0; i < NUM_LAYERS; i++ )
+	for (size_t i = 0; i < NUM_LAYERS; i++)
 	{
-		for ( auto it = layers[ i ].begin(); it != layers[ i ].end(); it++ )
+		auto& layer = layers[i];
+		
+		for (size_t j = 0; j < layer.Size(); j++)
 		{
-			( *it )->Update();
+			auto& renderable = layer.At(j);
+			renderable->Update();
+			
+			if (renderable->IsPendingDelete())
+			{
+				layer.Pop(j);
+			}
 		}
 	}
 }
 
 void Layers::Render()
 {
-	for ( int i = 0; i < NUM_LAYERS; i++ )
+	for (size_t i = 0; i < NUM_LAYERS; i++)
 	{
-		for ( auto it = layers[ i ].begin(); it != layers[ i ].end(); it++ )
+		auto& layer = layers[i];
+		for (size_t j = 0; j < layer.Size(); j++)
 		{
-			( *it )->Render();
+			layer.At(j)->Render();
 		}
+	}
+}
+
+void Layers::Clear()
+{
+	for (size_t i = 0; i < NUM_LAYERS; i++)
+	{
+		auto& layer = layers[i];
+		layer.Clear();
 	}
 }

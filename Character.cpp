@@ -17,74 +17,181 @@
 #include "MixerManager.h"
 #include "TextureManager.h"
 
+#include <cmath>
 #include <Python.h>
 
 Character* character = nullptr;
+
+void Character::OnSomething()
+{
+	puts("Character::OnSomething");
+}
 
 Character::Character()
 {
 	this->health = 50;
 	this->mana = 100;
 	this->stamina = 1000;
-	
+
 	this->staminaTickRegen = 1.35;
 	this->moveRate = 5;
-	
+
 	this->armor = 0;
-	
-	this->timer.Start( 0 );
+
+	this->timer.Start(0);
+	Map::PushEntity(*this);
+
+	this->actionHandlers["OnSomething"] = &Character::OnSomething;
+
+
+	//auto handler = this->actionHandlers["OnSomething"];
+	(this->*this->actionHandlers["OnSomething"])();
+	//this->OnAction = &Character::OnSomething;
+	//(this->*this->OnAction)();
 }
 
-void Character::AddHealth( int amount )
+void Character::OnForward()
 {
-	if ( amount < 0 )
+
+}
+
+void Character::OnBackward()
+{
+
+}
+
+void Character::OnLeft()
+{
+
+}
+
+void Character::OnRight()
+{
+
+}
+
+void Character::OnAction1()
+{
+
+}
+
+void Character::OnAction2()
+{
+
+}
+
+void Character::OnAction3()
+{
+
+}
+
+void Character::OnAction4()
+{
+
+}
+
+void Character::OnAction5()
+{
+
+}
+
+void Character::OnAction6()
+{
+
+}
+
+void Character::OnAction7()
+{
+
+}
+
+void Character::OnAction8()
+{
+
+}
+
+void Character::OnAction9()
+{
+
+}
+
+void Character::OnAction0()
+{
+
+}
+
+void Character::OnRun()
+{
+
+}
+
+void Character::OnOpenMainMenu()
+{
+
+}
+
+void Character::OnOpenInventory()
+{
+
+}
+
+void Character::OnInteract()
+{
+
+}
+
+bool Character::AddHealth(int amount)
+{
+	bool canChange = (amount < 0);
+
+	if (canChange)
 	{
 		Event event;
 		event.type = Event::DAMAGE;
-		
+
 		event.damage.type = DamageTypes::SLASH;
 		event.damage.amount = -amount;
-		
-		for ( auto it = this->modifiers.begin(); it != this->modifiers.end(); it++ )
+
+		for (auto it = this->modifiers.begin(); it != this->modifiers.end(); it++)
 		{
-			( it->second )->OnEvent( event );
+			(it->second)->OnEvent(event);
 		}
-		
+
 		amount = -event.damage.amount;
 	}
-	
-	this->health += amount;
-	
-	if ( this->health > 100 )
+
+	// Recheck against < 0 since the value may be reduce to 0
+	canChange = (amount < 0) || (amount > 0 && this->health < 100.0f);
+
+	if (canChange)
 	{
-		this->health = 100;
+		this->health += amount;
+
+		this->health = clamp(this->health, 0.0f, 100.0f);
 	}
+
+	return canChange;
 }
 
-void Character::AddStamina( int amount )
-{	
-	this->stamina += amount;
-	
-	if ( this->stamina > 1000 )
-	{
-		this->stamina = 1000;
-	}
+void Character::AddStamina(int amount)
+{
+	this->stamina = clamp(this->stamina + amount, 0.0f, 1000.0f);
 }
 
-bool Character::SpendStamina( int amount )
+bool Character::SpendStamina(int amount)
 {
 	bool canSpend = this->stamina >= amount;
-	
-	if ( canSpend )
+
+	if (canSpend)
 	{
 		this->stamina -= amount;
-		this->staminaTimer.Start( 3 * 1000 );
+		this->staminaTimer.Start(3 * 1000);
 	}
-	
+
 	return canSpend;
 }
 
-void Character::GetCollisionProxy( SdlRect& proxy )
+void Character::GetCollisionProxy(SdlRect& proxy)
 {
 	SDL_Point point = this->texture.GetPos();
 	SdlRect rect;
@@ -92,29 +199,29 @@ void Character::GetCollisionProxy( SdlRect& proxy )
 	rect.y = point.y;
 	rect.w = CharacterTexture::RENDER_SIZE;
 	rect.h = CharacterTexture::RENDER_SIZE;
-	
-	rect.y += rect.h * ( 3.0 / 4.0 );
+
+	rect.y += rect.h * (3.0 / 4.0);
 	rect.h /= 4;
-	
-	rect.x += rect.w * ( 2.0 / 5.0 );
+
+	rect.x += rect.w * (2.0 / 5.0);
 	rect.w /= 5;
-	
+
 	proxy = rect;
 }
 
-void Character::GetCenter( SDL_Point& point )
+void Character::GetCenter(SDL_Point& point)
 {
 	point = this->texture.GetPos();
 
 	point.x += CharacterTexture::RENDER_SIZE / 2;
-	point.y += CharacterTexture::RENDER_SIZE / 2;					
+	point.y += CharacterTexture::RENDER_SIZE / 2;
 }
 
-Modifier* Character::GetModifier( const std::string& name )
+Modifier* Character::GetModifier(const std::string& name)
 {
 	Modifier* mod;
-	
-	if ( this->modifiers.count( name ) )
+
+	if (this->modifiers.count(name))
 	{
 		mod = this->modifiers[ name ];
 	}
@@ -122,130 +229,151 @@ Modifier* Character::GetModifier( const std::string& name )
 	{
 		mod = nullptr;
 	}
-	
+
 	return mod;
 }
 
-void Character::SetModifier( const std::string& name, Modifier* modifier )
+void Character::SetModifier(const std::string& name, Modifier* modifier)
 {
-	this->modifiers[ name ] = modifier;
+	this->modifiers[name] = modifier;
 }
 
-bool Character::Update()
+void Character::OnCollision(const Entity& entity)
 {
+}
+
+void Character::ProcessInputs()
+{
+	const static int _FORWARD = EnumToBit(Directions::FORWARD);
+	const static int _LEFT = EnumToBit(Directions::LEFT);
+	const static int _DOWN = EnumToBit(Directions::DOWN);
+	const static int _RIGHT = EnumToBit(Directions::RIGHT);
+
 	SdlRect proxy;
-	
+
 	int directions = 0;
 	bool sprinting = false;
-	
-	const static int _FORWARD = EnumToBit( Directions::FORWARD );
-	const static int _LEFT = EnumToBit( Directions::LEFT );
-	const static int _DOWN = EnumToBit( Directions::DOWN );
-	const static int _RIGHT = EnumToBit( Directions::RIGHT );
-	
-	if ( this->stamina < 1000 and this->staminaTimer.IsExpired() )
+
+	for (KeySet::iterator it = this->keysPressed.begin(); it != this->keysPressed.end(); it++)
 	{
-		this->stamina += this->staminaTickRegen;
-		
-		if ( this->stamina > 1000 )
+		switch (*it)
 		{
-			this->stamina = 1000;
+			case SDLK_w:
+			{
+				directions |= _FORWARD;
+				break;
+			}
+			case SDLK_a:
+			{
+				directions |= _LEFT;
+				break;
+			}
+			case SDLK_s:
+			{
+				directions |= _DOWN;
+				break;
+			}
+			case SDLK_d:
+			{
+				directions |= _RIGHT;
+				break;
+			}
+			case SDLK_LSHIFT:
+			{
+				sprinting = true;
+				break;
+			}
+			case SDLK_RETURN:
+			{
+				this->chat.Activate();
+				break;
+			}
+			case SDLK_e:
+			{
+				SDL_Point point;
+				this->GetCenter(point);
+
+				Tile* tile = Map::GetTile(point, this->texture.direction, .75);
+
+				if (tile)
+				{
+					tile->OnInteract();
+				}
+
+				break;
+			}
+			case SDLK_1:
+			{
+				texture.SetAction(CharacterTexture::SPELLCAST);
+				break;
+			}
+			default:
+			{
+				break;
+			}
 		}
 	}
-	
-	if ( this->isActive )
+
+	this->texture.SetMoving(directions != 0);
+
+	for (auto it = this->cycleButton.begin(); it != this->cycleButton.end(); it++)
 	{
-		for ( KeySet::iterator it = this->keysPressed.begin(); it != this->keysPressed.end(); it++ )
+		hud->OnClick((*it));
+	}
+
+	for (auto it = this->cycleKeys.begin(); it != this->cycleKeys.end(); it++)
+	{
+		switch (*it)
 		{
-			switch ( *it )
+			case SDLK_ESCAPE:
 			{
-				case SDLK_w:
-				{
-					directions |= _FORWARD;
-					break;
-				}
-				case SDLK_a:
-				{
-					directions |= _LEFT;
-					break;
-				}
-				case SDLK_s:
-				{
-					directions |= _DOWN;
-					break;
-				}
-				case SDLK_d:
-				{
-					directions |= _RIGHT;
-					break;
-				}
-				case SDLK_LSHIFT:
-				{
-					sprinting = true;
-					break;
-				}
-				case SDLK_RETURN:
-				{
-					this->chat.Activate();
-					break;
-				}
-				case SDLK_e:
-				{
-					SDL_Point point;
-					this->GetCenter( point );
-					
-					Tile* tile = Map::GetTile( point, this->texture.direction, .75 );
-					
-					if ( tile )
-					{
-						tile->OnInteract();
-					}
-					
-					break;
-				}
-				case SDLK_1:
-				{
-					texture.SetAction( CharacterTexture::SPELLCAST );
-					break;
-				}
-				case SDLK_ESCAPE:
+				if (!hud->HideInventory())
 				{
 					mainMenu->SetAsActiveConsumer();
-					mainMenu->display = true;
-					break;
+					mainMenu->Show();
 				}
-				default:
-				{
-					break;
-				}
+				break;
 			}
 		}
-		
-		for ( auto it = this->cycleButton.begin(); it != this->cycleButton.end(); it++ )
-		{
-			switch ( it->button )
-			{
-				case SDL_BUTTON_LEFT:
-				{
-					SDL_Point point = { it->x, it->y };
-					hud->OnClick( point );
-					break;
-				}
-			}
-		}
-		
-		this->Clear();
 	}
-	
-	this->texture.SetDirection( directions );
-	this->texture.SetMoving( directions != 0 );
-	
+
+	this->Clear();
+
 	// If you are moving
-	if ( directions and this->texture.action == CharacterTexture::WALK )
+	if (directions && this->texture.action == CharacterTexture::WALK)
 	{
+		this->texture.SetDirection(directions);
+
+		EntitySet collisions;
+		EntitySet revertCollisions;
+		this->GetCollisionProxy(proxy);
+		this->SetCollision(proxy);
+
+		// If we start out colliding with an entity then we will:
+		//  disable collision for that entity
+		//  move around
+		//  re-enable collision for that entity
+		if(Map::CheckCollision(*this, collisions))
+		{
+			for (auto it = collisions.begin(); it != collisions.end(); it++)
+			{
+				auto id = (*it);
+				EntityRegistry* registry = EntityRegistry::GetInst();
+				Entity* entity = registry->GetEntity(id);
+
+				if (entity && entity->GetHasCollision())
+				{
+					revertCollisions.insert(id);
+					entity->SetHasCollision(false);
+				}
+			}
+		}
+
+		bool isColliding;
+
 		SDL_Point loc = this->texture.GetPos();
-		
-		if ( sprinting and this->SpendStamina( 10 ) )
+
+		if (sprinting && this->SpendStamina(10))
 		{
 			this->moveRate = 10;
 		}
@@ -253,96 +381,139 @@ bool Character::Update()
 		{
 			this->moveRate = 5;
 		}
-		
-		bool blockedX = false;
-		bool blockedY = false;
-		
-		for ( int i = 0; i < this->moveRate; i++ )
+
+		if (directions & _LEFT)
 		{
-			if ( !blockedX )
+			loc.x -= this->moveRate;
+		}
+
+		if (directions & _RIGHT)
+		{
+			loc.x += this->moveRate;
+		}
+
+		// do the move && revert it back if need be
+		do
+		{
+			this->texture.Move(loc.x, loc.y);
+			this->GetCollisionProxy(proxy);
+			this->SetCollision(proxy);
+
+			isColliding = Map::CheckCollision(*this, collisions);
+
+			if (isColliding)
 			{
-				int preX = loc.x;
-				
-				if ( directions & _LEFT )
-				{
-					loc.x--;
-				}
-				
-				if ( directions & _RIGHT )
+				if (directions & _LEFT)
 				{
 					loc.x++;
 				}
-				
-				this->texture.Move( loc.x, loc.y );
-				
-				this->GetCollisionProxy( proxy );
-				blockedX = Map::HasCollision( proxy );
-				
-				if ( blockedX )
+
+				if (directions & _RIGHT)
 				{
-					loc.x = preX;
+					loc.x--;
 				}
 			}
-			
-			if ( !blockedY )
+		} while(isColliding);
+
+		if (directions & _FORWARD)
+		{
+			loc.y -= this->moveRate;
+		}
+
+		if (directions & _DOWN)
+		{
+			loc.y += this->moveRate;
+		}
+
+		do
+		{
+			this->texture.Move(loc.x, loc.y);
+			this->GetCollisionProxy(proxy);
+			this->SetCollision(proxy);
+
+			isColliding = Map::CheckCollision(*this, collisions);
+
+			if (isColliding)
 			{
-				int preY = loc.y;
-				
-				if ( directions & _FORWARD )
-				{
-					loc.y--;
-				}
-				
-				if ( directions & _DOWN )
+				if (directions & _FORWARD)
 				{
 					loc.y++;
 				}
-				
-				this->texture.Move( loc.x, loc.y );
-				
-				this->GetCollisionProxy( proxy );
-				blockedY = Map::HasCollision( proxy );
-				
-				if ( blockedY )
+
+				if (directions & _DOWN)
 				{
-					loc.y = preY;
+					loc.y--;
 				}
 			}
+		} while(isColliding);
+
+		this->texture.Move(loc);
+
+		for (auto it = revertCollisions.begin(); it != revertCollisions.end(); it++)
+		{
+			auto id = (*it);
+			EntityRegistry* registry = EntityRegistry::GetInst();
+			Entity* entity = registry->GetEntity(id);
+
+			if (entity)
+			{
+				entity->SetHasCollision(true);
+			}
 		}
-		
-		this->texture.Move( loc );
-		
+
 		int swidth;
 		int sheight;
-				
+
 		int width;
 		int height;
-		
-		SdlGlobals::GetScreenDimentions( swidth, sheight );
-		Map::GetMapSize( width, height );
-		
-		loc.x -= ( swidth / 2.0 );
-		loc.y -= ( sheight / 2.0 );
-		
-		loc.x = std::max( loc.x, 0 );
-		loc.y = std::max( loc.y, 0 );
-		
-		loc.x = std::min( loc.x, width - swidth );
-		loc.y = std::min( loc.y, height - sheight );
-		
-		camera.Move( loc );
+
+		SdlGlobals::GetScreenDimentions(swidth, sheight);
+		Map::GetMapSize(width, height);
+
+		loc.x -= (swidth / 2.0);
+		loc.y -= (sheight / 2.0);
+
+		loc.x = std::max(loc.x, 0);
+		loc.y = std::max(loc.y, 0);
+
+		loc.x = std::min(loc.x, width - swidth);
+		loc.y = std::min(loc.y, height - sheight);
+
+		// camera is global
+		camera.Move(loc);
 	}
-	
-	Event event;
-	event.type = Event::TICK;
-	
-	for ( auto it = this->modifiers.begin(); it != this->modifiers.end(); it++ )
+}
+
+bool Character::Update()
+{
+	if (this->staminaTimer.IsExpired())
 	{
-		( it->second )->OnEvent( event );
+		this->AddStamina(this->staminaTickRegen);
 	}
-	
+
+	if (this->IsActiveConsumer())
+	{
+		this->ProcessInputs();
+	}
+	else
+	{
+		this->texture.SetMoving(false); // Cant be moving if we arent the active consumer
+	}
+
+	for (auto it = this->modifiers.begin(); it != this->modifiers.end(); it++)
+	{
+		Event event;
+		event.type = Event::TICK;
+
+		Modifier* modifier = (it->second);
+		if (modifier)
+		{
+			modifier->OnEvent(event);
+		}
+	}
+
 	this->texture.Update();
-	
+
 	return true;
 }
 

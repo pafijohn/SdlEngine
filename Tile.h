@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Timer.h"
+#include "Entity.h"
+#include "Pointers.h"
 #include "SdlTexture.h"
 #include "Renderable.h"
 #include "Inventoried.h"
@@ -8,10 +10,12 @@
 #include "EventConsumer.h"
 #include "InventoryDisplay.h"
 
-class Tile: public SdlTexture
+using namespace Pointers;
+
+class Tile:
+	public SdlTexture,
+	public Entity
 {
-protected:
-	bool isPassible;
 public:
 	int id;
 	
@@ -20,13 +24,13 @@ public:
 	
 	Tile();
 	
-	virtual bool IsPassible();
-	virtual void SetId( int id );
+	virtual void SetId(int id);
 	virtual void Init();
 	virtual void OnInteract();
 };
 
-class Wheat: public Tile
+class Wheat:
+	public Tile
 {
 	bool toggle;
 	Timer timer;
@@ -40,7 +44,8 @@ public:
 	virtual void Render();
 };
 
-class Ore: public Tile
+class Ore:
+	public Tile
 {
 	bool available;
 	Timer timer;
@@ -52,9 +57,11 @@ public:
 	virtual void Render();
 };
 
-class ChestTile: public Tile, public Inventoried
+class ChestTile:
+	public Tile,
+	public Inventoried
 {
-	InventoryDisplay* inventoryDisplay;
+	SP<InventoryDisplay> inventoryDisplay;
 public:
 	ChestTile();
 	virtual void OnInteract();

@@ -1,6 +1,11 @@
 #include "Modifier.h"
 #include "Character.h"
 
+Modifier::~Modifier()
+{
+	
+}
+
 void Modifier::OnStart()
 {
 	

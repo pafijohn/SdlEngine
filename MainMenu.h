@@ -4,9 +4,13 @@
 #include "SolidRect.h"
 #include "Renderable.h"
 #include "SdlTexture.h"
+#include "Displayable.h"
 #include "EventConsumer.h"
 
-class MainMenu: public Renderable, public EventConsumer
+class MainMenu:
+	public Renderable,
+	public EventConsumer,
+	public Displayable
 {
 	int currentSelection;
 	SolidRect* solidRect;
@@ -28,8 +32,6 @@ public:
 	
 	virtual bool Update();
 	virtual void Render();
-	
-	bool display;
 };
 
 extern MainMenu* mainMenu;

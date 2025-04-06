@@ -3,23 +3,28 @@
 #include <SDL.h>
 
 #include "Layers.h"
+#include "Pointers.h"
 #include "Directions.h"
 #include "Renderable.h"
 #include "Positionable.h"
 #include "AnimatedTexture.h"
 
-class CharacterTexture: public Renderable, public Positionable
+using namespace Pointers;
+
+class CharacterTexture:
+	public Renderable,
+	public Positionable
 {
 public:
 	CharacterTexture();
-	void SetMoving( bool moving );
-	void SetAction( int action, bool ignoreChecks = false );
-	void SetDirection( int direction );
+	void SetMoving(bool moving);
+	void SetAction(int action, bool ignoreChecks = false);
+	void SetDirection(int direction);
 	
-	AnimatedTexture* GetAnimation();
+	SP<AnimatedTexture> GetAnimation();
 	
-	bool Update();
-	void Render();
+	virtual bool Update();
+	virtual void Render();
 	
 	enum
 	{
@@ -41,5 +46,5 @@ public:
 	Timer timer;
 	
 private:
-	AnimatedTexture* top[ NUM_ACTIONS ][ Directions::NUM_DIRECTIONS ];
+	SP<AnimatedTexture> top[ NUM_ACTIONS ][ Directions::NUM_DIRECTIONS ];
 };
